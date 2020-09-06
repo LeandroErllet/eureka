@@ -1,0 +1,55 @@
+image: maven:3.5.2-jdk-8
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+
+stages:
+  - build
+  - analysis
+  - test
+  - deploy
+
+maven:build:
+  stage: build
+  script:
+    - mvn  $MAVEN_CLI_OPTS clean install
+  artifacts:
+    paths:
+    - target/
+  cache:
+    key: maven_libs
+    paths:
+      - .m2/repository
+
+checkstyle:analysis:
+  stage: analysis
+  script:
+    - wget -q https://github.com/checkstyle/checkstyle/releases/download/checkstyle-8.9/checkstyle-8.9-all.jar
+    - java -jar checkstyle-8.9-all.jar -c ruleset.xml src/main/java
+
+maven:test: 
+  stage: test
+  script:
+    - mvn  $MAVEN_CLI_OPTS test
+  artifacts:
+    paths:
+    - target/
+  cache:
+    key: maven_libs
+    paths:
+      - .m2/repository
+
+maven:deploy: 
+  stage: deploy
+  script:
+    - mvn $MAVEN_CLI_OPTS deploy
+  artifacts:
+    paths:
+    - target/
+  only:
+    - master
+  cache:
+    key: maven_libs
+    paths:
+      - .m2/repository
