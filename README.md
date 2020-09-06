@@ -29,7 +29,16 @@ A framework possui dois tipos de módulos, módulos pais e módulos filhos, os m
 
 ### Criando um módulo
 
-Primeiro, certifique-se de que a dependência esteja no seu `pom.xml`:
+Primeiro, certifique-se de que o repositório esteja no seu `pom.xml`:
+
+```xml
+<repository>
+ <id>craftlife</id>
+ <url>https://artifactory.craftlife.com.br/artifactory/libs-release-local</url>
+</repository>
+```
+
+Depois, certifique-se de que a dependência esteja no seu `pom.xml`:
 
 ```xml
 <dependency>
