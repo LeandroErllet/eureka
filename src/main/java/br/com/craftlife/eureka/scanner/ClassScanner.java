@@ -1,8 +1,12 @@
 package br.com.craftlife.eureka.scanner;
 
 import br.com.craftlife.eureka.database.DatabaseManager;
+import br.com.craftlife.eureka.loader.types.EurekaListener;
+import co.aikar.commands.BaseCommand;
 import lombok.Getter;
+import org.bukkit.event.Listener;
 import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 
 import javax.persistence.Converter;
@@ -17,6 +21,13 @@ public class ClassScanner {
     @Getter
     private final Class base;
     private final Set<Class> entities = new HashSet<>();
+
+    @Getter
+    private final Set<Class<? extends BaseCommand>> commands = new HashSet<>();
+
+    @Getter
+    private final Set<Class> listeners = new HashSet<>();
+
     private final ClassLoader loader;
 
     public ClassScanner(Class base, ClassLoader loader) {
@@ -27,7 +38,9 @@ public class ClassScanner {
     public void scan() {
         String pack = base.getPackage().getName();
         String defaultPackage = DatabaseManager.class.getPackage().getName();
-        Reflections reflections = new Reflections(pack, defaultPackage, loader, new TypeAnnotationsScanner());
+        Reflections reflections = new Reflections(pack, defaultPackage, loader);
+        commands.addAll(reflections.getSubTypesOf(BaseCommand.class));
+        listeners.addAll(reflections.getTypesAnnotatedWith(EurekaListener.class, true));
         entities.addAll(reflections.getTypesAnnotatedWith(Entity.class, true));
         entities.addAll(reflections.getTypesAnnotatedWith(Embeddable.class, true));
         entities.addAll(reflections.getTypesAnnotatedWith(Converter.class, true));

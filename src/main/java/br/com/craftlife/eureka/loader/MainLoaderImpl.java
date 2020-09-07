@@ -12,8 +12,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.val;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,9 +47,6 @@ public class MainLoaderImpl extends AbstractLoader {
 
     @Getter
     private PaperCommandManager commandManager;
-
-    @Getter
-    private final List<ChildLoaderImpl> childLoaders = new ArrayList<>();
 
     @Getter
     private final EurekaInjectorModule injectorModule;
@@ -89,10 +89,6 @@ public class MainLoaderImpl extends AbstractLoader {
     @Override
     public EurekaLoader getParent() {
         return null;
-    }
-
-    public void addChildLoader(ChildLoaderImpl loader) {
-        childLoaders.add(loader);
     }
 
 }

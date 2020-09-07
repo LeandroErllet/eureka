@@ -1,12 +1,16 @@
 package br.com.craftlife.eureka.loader;
 
 import br.com.craftlife.eureka.loader.types.EurekaLoader;
+import br.com.craftlife.eureka.loader.types.Module;
 import br.com.craftlife.eureka.scanner.ClassScanner;
 import co.aikar.commands.BaseCommand;
 import com.google.inject.Injector;
+import lombok.val;
 import org.bukkit.event.Listener;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractLoader implements EurekaLoader {
@@ -37,23 +41,31 @@ public abstract class AbstractLoader implements EurekaLoader {
 
     @Override
     public void load() {
+        loadModules();
         getResourceProvider().init();
-        ClassScanner scanner = new ClassScanner(getModule().getClass(), getModule().getClass().getClassLoader());
-        scanner.scan();
-        scanner.getEntities().forEach(getDatabaseManager()::registerClass);
-
         getInjector().injectMembers(getModule());
     }
 
     @Override
     public void enable() {
         getDatabaseManager().migrate(this);
-        listeners.forEach(listener ->
-                getModule().getServer().getPluginManager().registerEvents(listener, getModule())
-        );
-        commands.forEach(commands -> getCommandManager().registerCommand(commands));
-        commands.clear();
-        listeners.clear();
+        ClassScanner scanner = new ClassScanner(getModule().getClass(), getModule().getClass().getClassLoader());
+        scanner.scan();
+        scanner.getEntities().forEach(getDatabaseManager()::registerClass);
+        scanner.getListeners()
+                .stream()
+                .filter(Listener.class::isAssignableFrom)
+                .map(aClass -> getInjector().getInstance(aClass))
+                .forEach(aClass -> getModule().getServer().getPluginManager().registerEvents((Listener) aClass, getModule()));
+        scanner.getCommands().forEach(aClass -> getCommandManager().registerCommand(getInjector().getInstance(aClass)));
+    }
+
+
+    private Collection<Class<?>> loadModules() {
+        val moduleLoader = new ModuleLoader(getModule().getClass().getClassLoader());
+        val moduleFolder = new File(getModule().getDataFolder(), "modules");
+        moduleFolder.mkdirs();
+        return moduleLoader.loadModules("br.com.craftlife", moduleFolder);
     }
 
 }

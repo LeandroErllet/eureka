@@ -3,12 +3,10 @@ package br.com.craftlife.eureka.injector;
 import br.com.craftlife.eureka.database.DatabaseManager;
 import br.com.craftlife.eureka.database.EurekaBD;
 import br.com.craftlife.eureka.database.memory.IMemoryStorage;
-import br.com.craftlife.eureka.injector.command.InjectionCommand;
 import br.com.craftlife.eureka.injector.resource.ResourceTypeListener;
 import br.com.craftlife.eureka.injector.interceptor.TransactionalInterceptor;
 import br.com.craftlife.eureka.injector.interceptor.async.Async;
 import br.com.craftlife.eureka.injector.interceptor.async.AsyncInterceptor;
-import br.com.craftlife.eureka.injector.listener.InjectionListener;
 import br.com.craftlife.eureka.loader.types.EurekaLoader;
 import br.com.craftlife.eureka.module.EurekaModule;
 import br.com.craftlife.eureka.resource.messages.MessageProvider;
@@ -32,8 +30,6 @@ public class EurekaInjectorModule implements Module {
     public void configure(Binder binder) {
         binder.bind((Class) loader.getModule().getClass()).toInstance(loader.getModule());
         binder.bindListener(Matchers.any(), new ResourceTypeListener(loader));
-        binder.bindListener(Matchers.any(), new InjectionListener(loader));
-        binder.bindListener(Matchers.any(), new InjectionCommand(loader));
         binder.bindInterceptor(Matchers.subclassesOf(EurekaBD.class), Matchers.annotatedWith(Transactional.class),
                 new TransactionalInterceptor(loader.getDatabaseManager()));
         binder.bindInterceptor(Matchers.any(), Matchers.annotatedWith(Async.class),
