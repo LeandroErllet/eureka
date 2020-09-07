@@ -31,16 +31,21 @@ public class ChildLoaderImpl extends AbstractLoader {
     private final Injector injector;
 
     @Getter
-    private final PaperCommandManager commandManager;
+    private PaperCommandManager commandManager;
 
     ChildLoaderImpl(MainLoaderImpl parent, EurekaModule module) {
         this.parent = parent;
         this.module = module;
         this.moduleName = module.getName();
-        this.commandManager = new PaperCommandManager(module);
         this.resourceProvider = new ResourceProvider(module);
         EurekaInjectorModule injectorModule = new EurekaInjectorModule(this);
         this.injector = Guice.createInjector(injectorModule);
+    }
+
+    @Override
+    public void enable() {
+        this.commandManager = new PaperCommandManager(module);
+        super.enable();
     }
 
     @Override
